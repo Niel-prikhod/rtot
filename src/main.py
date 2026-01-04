@@ -1,23 +1,32 @@
-from machine import I2C, Pin
-import ssd1306
-import bmp280
-from mpu9250 import MPU9250
+import time
+import helpers
 
-# OLED on GP2=SDA, GP3=SCL -> I2C1
-i2c_oled = I2C(1, scl=Pin(3), sda=Pin(2))
+def main(): 
+    mpu, bmp, oled = helpers.init_i2c()
+    # fixed timestep loop variables
+    TARGET_HZ = 20
+    DT = 1.0 / TARGET_HZ
 
-# Sensors on GP4=SDA, GP5=SCL -> I2C0
-i2c_sensors = I2C(0, scl=Pin(5), sda=Pin(4))
+    last = time.ticks_us()
+    while True:
+        now = time.ticks_us()
+        dt = (time.ticks_diff(now, last)) / 1_000_000  # seconds
+        if dt < DT:
+            time.sleep_us(int((DT - dt) * 1_000_000))
+            continue
+        last = time.ticks_us()
+        
+        helpers.countdown(oled, 5)
+        ax, ay, az = mpu.acceleration
+        gx, gy, gz = mpu.gyro 
+        mx, my, mz = mpu.magnetic 
+        temp = bmp.temperature
+        pressure = bmp.pressure
 
-# Initialize devices
-oled = ssd1306.SSD1306_I2C(128, 64, i2c_oled)
-bmp = bmp280.BMP280(i2c_sensors, 0x77)
-imu = MPU9250(i2c_sensors)
+        # feed to your filter and update oled
+        # roll, pitch, yaw = filter.update(ax, ay, az, gx, gy, gz, mx, my, mz, dt)
+        # display(roll, pitch, yaw, temp, pressure)
+        helpers.display(oled, temp, pressure, ax, ay, az)
 
-oled.text("Hello Pico!", 0, 0)
-oled.show()
-
-while(True):
-    print([hex(x) for x in i2c_sensors.scan()])
-    print("BMP280 Temp:", bmp.temperature)
-    print("IMU Accel:", imu.acceleration)
+if __name__ == "__main__":
+    main()
