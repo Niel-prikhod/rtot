@@ -47,6 +47,7 @@ def countdown(oled, seconds):
     for i in range(seconds, 0, -1):
         oled.fill(0)
         draw_big_number(oled, i, x, y)
+        print(i)
         oled.show()
         time.sleep(1)
     

@@ -4,9 +4,10 @@ import helpers
 def main(): 
     mpu, bmp, oled = helpers.init_i2c()
     # fixed timestep loop variables
-    TARGET_HZ = 20
+    TARGET_HZ = 0.5
     DT = 1.0 / TARGET_HZ
 
+    helpers.countdown(oled, 5)
     last = time.ticks_us()
     while True:
         now = time.ticks_us()
@@ -16,7 +17,6 @@ def main():
             continue
         last = time.ticks_us()
         
-        helpers.countdown(oled, 5)
         ax, ay, az = mpu.acceleration
         gx, gy, gz = mpu.gyro 
         mx, my, mz = mpu.magnetic 
