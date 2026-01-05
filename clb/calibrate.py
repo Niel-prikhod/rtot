@@ -50,12 +50,12 @@ def main():
         }
         try:
             helpers.countdown(oled, 5)
-            stage['countdown_error'] = str(exc_countdown)
 
             stage['started_at'] = timestamp()
             record_to_csv(filename, fieldnames, read_fn, sample_rate_hz=sample_rate_hz, max_seconds=duration_s)
             stage['finished_at'] = timestamp()
             stage['status'] = "ok"
+            print("Stage", name, " done:")
         except Exception as e:
             stage['finished_at'] = timestamp()
             stage['status'] = "error"
@@ -80,7 +80,7 @@ def main():
     )
 
     # small pause between stages
-    time.sleep(0.2)
+    time.sleep(5.2)
 
     # --- Stage 2: Accelerometer six-position captures ---
     def read_accel_sample():
@@ -89,6 +89,7 @@ def main():
 
     for pos in POSITIONS:
         print("Prepare position:", pos)
+        helpers.countdown(oled, 5)
         accel_file = "{}/accel_{}.csv".format(BASE_DIR, pos)
         # call _run_stage which will call helpers.countdown(oled, 5) before capturing
         _run_stage(

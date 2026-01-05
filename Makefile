@@ -24,32 +24,30 @@ libs: mpy
 	$(MPREMOTE) connect $(PORT) mkdir :lib
 	@echo "Flashing Libraries on $(PORT)..."
 	# $(MPREMOTE) connect $(PORT) cp -r $(BUILD_DIR)/* :lib
-	$(foreach f,$(MPYS),$(MPREMOTE) connect $(PORT) cp $(BUILD_DIR)/$f :$f;)
+	$(foreach f,$(MPYS),$(MPREMOTE) connect $(PORT) cp $(BUILD_DIR)/$f :lib/$f;)
 
 # Ensure build directory exists
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-# Flash compiled libraries + sources to Pico
-flash: libs
-	@echo "Flashing Sources on $(PORT)..."
-	# copy all source files
+sources:
 	$(foreach f,$(SRCS),$(MPREMOTE) connect $(PORT) cp $(SRC_DIR)/$f :$f;)
-	$(MPREMOTE) connect $(PORT) reset
+
+# Flash compiled libraries + sources to Pico
+flash: libs sources
+	@echo "Flashing Sources on $(PORT)..."
+	$(MPREMOTE) connect $(PORT) soft-reset
 	@echo "Done."
 
-calibrate: libs
-	$(foreach f,$(SRCS),$(MPREMOTE) connect $(PORT) cp $(SRC_DIR)/$f :$f;)
+calibration: libs sources
 	$(foreach f,$(CLBS),$(MPREMOTE) connect $(PORT) cp $(CLB_DIR)/$f :$f;)
-	$(MPREMOTE) connect $(PORT) run calibrate.py
 
 fetch-data:
 	mkdir -p data
-	$(MPREMOTE) connect $(PORT) fs cp :data/*.csv data/
-	$(MPREMOTE) connect $(PORT) fs cp :data/*.json data/
+	$(eval FILES := $(shell $(MPREMOTE) connect $(PORT) fs ls :data))
+	$(foreach f,$(FILES),$(MPREMOTE) connect $(PORT) fs cp :data/$(f) data/;)
 
-# Run main.py in RAM
-run:
+run: sources
 	$(MPREMOTE) connect $(PORT) run $(SRC_DIR)/main.py
 
 repl:
@@ -57,19 +55,22 @@ repl:
 
 # Clean build artifacts
 clean:
-	rm *.mpy || true 
-	rm -rf $(BUILD_DIR) || true
+	@rm -f *.mpy || true 
+	@rm -rf $(BUILD_DIR) || true
 
 # Remove all user files from Pico filesystem
 pico-clean:
 	@echo "Cleaning all files from Pico on $(PORT)..."
-	$(MPREMOTE) connect $(PORT) fs rm -r :lib || true
-	$(MPREMOTE) connect $(PORT) fs rm :*.py || true
-	$(MPREMOTE) connect $(PORT) fs rm :*.mpy || true
-	$(MPREMOTE) connect $(PORT) fs rm -r :data || true
-	$(MPREMOTE) connect $(PORT) fs rm :*.csv || true
-	$(MPREMOTE) connect $(PORT) fs rm :*.json || true
+	$(MPREMOTE) connect $(PORT) rm -r :lib || true
+	$(MPREMOTE) connect $(PORT) rm :*.py || true
+	$(MPREMOTE) connect $(PORT) rm :*.mpy || true
+	$(MPREMOTE) connect $(PORT) rm -r :data || true
+	$(MPREMOTE) connect $(PORT) rm :*.csv || true
+	$(MPREMOTE) connect $(PORT) rm :*.json || true
 	@echo "Pico filesystem cleaned."
+
+pico-ls: 
+	$(MPREMOTE) connect $(PORT) fs ls
 
 re: pico-clean clean flash
 
