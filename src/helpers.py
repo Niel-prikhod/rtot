@@ -12,8 +12,9 @@ def init_i2c():
     # Sensors on GP4=SDA, GP5=SCL -> I2C0
     i2c_sensors = I2C(0, scl=Pin(5), sda=Pin(4))
 
-    mpu6500 = MPU6500(i2c_sensors, accel_sf=SF_G, gyro_sf=SF_DEG_S)
-    mpu = MPU9250(i2c_sensors, mpu6500=mpu6500)
+    # mpu6500 = MPU6500(i2c_sensors, accel_sf=SF_G, gyro_sf=SF_DEG_S)
+    # mpu = MPU9250(i2c_sensors, mpu6500=mpu6500)
+    mpu = MPU9250(i2c_sensors)
     bmp = BMP280(i2c_sensors, 0x77)
     oled = SSD1306_I2C(128, 64, i2c_oled)
     return mpu, bmp, oled
