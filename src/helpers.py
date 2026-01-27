@@ -55,3 +55,24 @@ def countdown(oled, seconds):
     oled.fill(0)
     draw_big_number(oled, 0, x, y)
     oled.show()
+
+def apply_calibration(ax, ay, az, gx, gy, gz, mx, my, mz, calib):
+
+    gx -= calib["gyro_bias"]["x"]
+    gy -= calib["gyro_bias"]["y"]
+    gz -= calib["gyro_bias"]["z"]
+
+    ax = (ax - calib["accel"]["offset"]["x"]) / calib["accel"]["scale"]["x"]
+    ay = (ay - calib["accel"]["offset"]["y"]) / calib["accel"]["scale"]["y"]
+    az = (az - calib["accel"]["offset"]["z"]) / calib["accel"]["scale"]["z"]
+
+    mx -= calib["mag"]["offset"]["x"]
+    my -= calib["mag"]["offset"]["y"]
+    mz -= calib["mag"]["offset"]["z"]
+
+    mx *= calib["mag"]["scale"]["x"]
+    my *= calib["mag"]["scale"]["y"]
+    mz *= calib["mag"]["scale"]["z"]
+
+    return ax, ay, az, gx, gy, gz, mx, my, mz
+

@@ -1,6 +1,8 @@
 import time
 import helpers
 import math
+import json
+
 
 P_0 = 101325
 ALPHA_P = 0.3
@@ -10,6 +12,9 @@ DT = 1.0 / TARGET_HZ
 def main(): 
     mpu, bmp, oled = helpers.init_i2c()
     
+    with open("calibration.json") as f:
+        calib = json.load(f)
+
     helpers.countdown(oled, 5)
     last = time.ticks_us()
 
@@ -29,12 +34,16 @@ def main():
         temp = bmp.temperature
         pressure = bmp.pressure
         
+        ax, ay, az, gx, gy, gz, mx, my, mz = helpers.apply_calibration(ax, ay, az, gx, gy, gz, mx, my, mz, calib)
+
         roll  = math.atan2(ay, az)
         pitch = math.atan2(-ax, math.sqrt(ay*ay + az*az))
         
         mx2 = mx * math.cos(pitch) + mz * math.sin(pitch)
         my2 = mx * math.sin(roll) * math.sin(pitch) + my * math.cos(roll) - mz * math.sin(roll) * math.cos(pitch)
         yaw = math.atan2(-my2, mx2)
+
+
 
         roll_deg  = math.degrees(roll)
         pitch_deg = math.degrees(pitch)

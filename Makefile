@@ -23,6 +23,7 @@ libs: mpy
 	$(MPREMOTE) connect $(PORT) rm -r :lib || true
 	$(MPREMOTE) connect $(PORT) mkdir :lib
 	@echo "Flashing Libraries on $(PORT)..."
+	$(MPREMOTE) connect $(PORT) cp data/calibration.json :calibration.json
 	# $(MPREMOTE) connect $(PORT) cp -r $(BUILD_DIR)/* :lib
 	$(foreach f,$(MPYS),$(MPREMOTE) connect $(PORT) cp $(BUILD_DIR)/$f :lib/$f;)
 
